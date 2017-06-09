@@ -48,7 +48,6 @@ class AirCargoProblem(Problem):
             list of Action objects
         """
 
-        # TODO create concrete Action objects based on the domain action schema for: Load, Unload, and Fly
         # concrete actions definition: specific literal action that does not include variables as with the schema
         # for example, the action schema 'Load(c, p, a)' can represent the concrete actions 'Load(C1, P1, SFO)'
         # or 'Load(C2, P2, JFK)'.  The actions for the planning problem must be concrete because the problems in
@@ -60,7 +59,6 @@ class AirCargoProblem(Problem):
             :return: list of Action objects
             """
             loads = []
-
             for cargo in self.cargos:
                 for plane in self.planes:
                     for airport in self.airports:
@@ -83,8 +81,6 @@ class AirCargoProblem(Problem):
             :return: list of Action objects
             """
             unloads = []
-
-
             for cargo in self.cargos:
                 for plane in self.planes:
                     for airport in self.airports:
@@ -140,9 +136,11 @@ class AirCargoProblem(Problem):
             is_possible = True
             for clause in action.precond_pos:
                 if clause not in kb.clauses:
+                    # if a positive precondition is not fulfilled in this state then this action is not possible
                     is_possible = False
             for clause in action.precond_neg:
                 if clause in kb.clauses:
+                    # if a negative precondition is fulfilled in this state then this action is not possible
                     is_possible = False
             if is_possible:
                 possible_actions.append(action)
@@ -162,12 +160,15 @@ class AirCargoProblem(Problem):
         old_state = decode_state(state, self.state_map)
         for fluent in old_state.pos:
             if fluent not in action.effect_rem:
+                # if the action does not remove the positive fluent from the old state, then add it to the new state
                 new_state.pos.append(fluent)
         for fluent in action.effect_add:
             if fluent not in new_state.pos:
+                # if the new fluent does not exist in the new state, then add it
                 new_state.pos.append(fluent)
         for fluent in old_state.neg:
             if fluent not in action.effect_add:
+                # the negative fluent from the old state is kept if the action does not add it as effect
                 new_state.neg.append(fluent)
         for fluent in action.effect_rem:
             if fluent not in new_state.neg:
