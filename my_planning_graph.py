@@ -413,19 +413,14 @@ class PlanningGraph():
         :return: bool
         """
 
-        # check for effects that are added by action1 but removed by action 2
-        for a1_eff_add in node_a1.action.effect_add:
-            for a2_eff_rem in node_a2.action.effect_rem:
-                if a1_eff_add == a2_eff_rem:
-                    return True
+        a1_eff_add = set(node_a1.action.effect_add)
+        a1_eff_rem = set(node_a1.action.effect_rem)
+        a2_eff_add = set(node_a2.action.effect_add)
+        a2_eff_rem = set(node_a2.action.effect_rem)
 
-        # check for effects that are removed by action1 but added by action 2
-        for a1_eff_rem in node_a1.action.effect_rem:
-            for a2_eff_add in node_a2.action.effect_add:
-                if a1_eff_rem == a2_eff_add:
-                    return True
-
-        return False
+        # check for intersection between effects that are added by action1 but removed by action 2
+        # or effects that are removed by action1 but added by action 2
+        return bool((a1_eff_add & a2_eff_rem) or (a1_eff_rem & a2_eff_add))
 
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         """
@@ -442,29 +437,29 @@ class PlanningGraph():
         :return: bool
         """
 
-        # compare effects added by action1 and negative preconditions by action1
-        for a1_eff_add in node_a1.action.effect_add:
-            for a2_precond_neg in node_a2.action.precond_neg:
-                if a1_eff_add == a2_precond_neg:
-                    return True
+        a1_eff_add = set(node_a1.action.effect_add)
+        a2_precond_neg = set(node_a2.action.precond_neg)
+        # compare effects added by action1 and negative preconditions by action2
+        if a1_eff_add & a2_precond_neg:
+            return True
 
-        # compare effects removed by action1 and positive preconditions by action1
-        for a1_eff_rem in node_a1.action.effect_rem:
-            for a2_precond_pos in node_a2.action.precond_pos:
-                if a1_eff_rem == a2_precond_pos:
-                    return True
+        a1_eff_rem = set(node_a1.action.effect_rem)
+        a2_precond_pos = set(node_a2.action.precond_pos)
+        # compare effects removed by action1 and positive preconditions by action2
+        if a1_eff_rem & a2_precond_pos:
+            return True
 
+        a2_eff_add = set(node_a2.action.effect_add)
+        a1_precond_neg = set(node_a1.action.precond_neg)
         # compare effects added by action2 and negative preconditions by action1
-        for a2_eff_add in node_a2.action.effect_add:
-            for a1_precond_neg in node_a1.action.precond_neg:
-                if a1_precond_neg == a2_eff_add:
-                    return True
+        if a2_eff_add & a1_precond_neg:
+            return True
 
+        a2_eff_rem = set(node_a2.action.effect_rem)
+        a1_precond_pos = set(node_a1.action.precond_pos)
         # compare effects removed by action2 and positive preconditions by action1
-        for a2_eff_rem in node_a2.action.effect_rem:
-            for a1_precond_pos in node_a1.action.precond_pos:
-                if a1_precond_pos == a2_eff_rem:
-                    return True
+        if a2_eff_rem & a1_precond_pos:
+            return True
 
         return False
 
